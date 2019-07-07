@@ -29,6 +29,23 @@ $header=[
     'heheh'
 ];
 
+$tbody=[
+    [
+        "text"=>'a',
+        "weight"=>10,
+    ],
+    [
+        "text"=>'otro',
+        "weight"=>30,
+    ],
+    [
+        "text"=>'tercera',
+        #"weight"=>10,
+    ]
+];
 $pdf->draw($header);
+$pdf->Ln();
+
+$pdf->draw($tbody);
 $pdf->Output();
 
