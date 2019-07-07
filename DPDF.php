@@ -100,17 +100,17 @@ class DPDF extends FPDF{
         parent::SetFont($family, $style, $size);
     }
     
-    public function draw($header){
+    public function draw($header,$ln=0){
         $w=$this->GetWithWithoutMargin();
         $wc=$w/count($header);
-    #print_r($pdf);
-    #$currentFont=$this->SetFontSize
+    
     $lastFont=$this->GetLastFont();
     if($this->HasLastTextColor()){
         $lastTextColor=$this->GetLastTextColor();
     }else{
         $lastTextColor=$this->defaultTextColor;
     }
+    $lastSize=$this->FontSizePt;
     
     foreach ($header as  $value) {
         if(!is_array($value)){
@@ -140,11 +140,14 @@ class DPDF extends FPDF{
         if(!empty($value['textColor'])){
             $this->SetTextHexColor($value['textColor']);
         }
+        if(!empty($value['size'])){
+            #$this->SetFontSize($value['size']);
+        }
         
     
         $this->Cell($wc,$heigth,$value['text'],
         $border,#border
-        0,# con esto hace que sea una linea seguida
+        $ln,# 0=con esto hace que sea una linea seguida
         $align,
         $fill
         );
@@ -165,7 +168,13 @@ class DPDF extends FPDF{
                 $lastTextColor[2]
             );
         }
+        if (!empty($value['size'])) {
+            $this->SetFontSize($lastSize);
+        }
     }
+    }
+    public function column($column){
+        $this->draw($column,1);
     }
 
     public $headerCallback=null;
@@ -204,5 +213,5 @@ class DPDF extends FPDF{
             $callback($this);
         }
     }
-
+    
 }
