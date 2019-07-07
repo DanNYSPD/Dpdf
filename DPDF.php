@@ -46,4 +46,38 @@ class DPDF extends FPDF{
     public function GetWithWithoutMargin(){
         return $this->GetPageWidth()-($this->GetLMargin()+$this->GetRMargin());
     }
+
+    public function draw($header){
+        $w=$this->GetWithWithoutMargin();
+        $wc=$w/count($header);
+    #print_r($pdf);
+    foreach ($header as  $value) {
+        if(!is_array($value)){
+            $value=['text'=>$value];
+        }
+            $align=$value['align']??'C';
+            $heigth=$value['heigth']??10;
+            $border=$value['border']??1;
+            $fill=$value['fill']??false;
+    
+            if(!empty($value['fill'])){
+                $this->SetFillHexadecimalColor($fill);
+                $fill=true;
+            }
+    
+            if(!empty($value['weight'])){
+            $w=$value['weight'];
+            $pw=$this->GetPageWidth();
+            $wc=($w/100)*$pw; #sacamos el valor relaivo
+            }
+        
+    
+        $this->Cell($wc,$heigth,$value['text'],
+        $border,#border
+        0,# con esto hace que sea una linea seguida
+        $align,
+        $fill
+        );    
+    }
+    }
 }
