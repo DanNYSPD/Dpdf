@@ -46,6 +46,8 @@ class DPDF extends FPDF{
     public function GetWithWithoutMargin(){
         return $this->GetPageWidth()-($this->GetLMargin()+$this->GetRMargin());
     }
+
+    
     /**
      * En ocasiones solo se quiere cambiar el font style y no toda la fuente
      *
@@ -53,18 +55,25 @@ class DPDF extends FPDF{
      */
     public function SetFontStyle($style){
         $this->FontStyle = $style;
+        
        // die($this->lastSize);
        #print_r([$this->FontFamily,$style,$this->lastSize,$this->lastFont]);
        #die();
-        $this->SetFont($this->lastFont,$style,$this->lastSize);
+       
+        #$this->SetFont($this->lastFont,$style,$this->lastSize);
+        $this->SetFont($this->lastFont['family'],$style,$this->lastFont['size']);
         
     }
     public $lastSize=0;
-    public $lastFont='';
+    public $lastFont=[];
+    public function GetLastFont(){
+        return $this->lastFont;
+    }
     public function SetFont($family, $style='', $size=0){
         
         $this->lastSize=$size;
         $this->lastFont=$family;
+        $this->lastFont=['family'=>$family,'style'=>$style,'size'=>$size];
         parent::SetFont($family, $style, $size);
     }
     
@@ -73,6 +82,7 @@ class DPDF extends FPDF{
         $wc=$w/count($header);
     #print_r($pdf);
     #$currentFont=$this->SetFontSize
+    $lastFont=$this->GetLastFont();
     foreach ($header as  $value) {
         if(!is_array($value)){
             $value=['text'=>$value];
@@ -108,7 +118,12 @@ class DPDF extends FPDF{
         );
         if(!empty($value['style'])){
             #$this->SetFontStyle($value['style']);
-            $this->SetFontStyle('');
+            #$this->SetFontStyle('');
+            $this->SetFont(
+                $lastFont['family'],
+                $lastFont['style'],
+                $lastFont['size']
+            );
         }
     }
     }
