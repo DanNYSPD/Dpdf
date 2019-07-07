@@ -167,4 +167,42 @@ class DPDF extends FPDF{
         }
     }
     }
+
+    public $headerCallback=null;
+    public $footerCallback=null;
+    /**
+     * Sets header callback.
+     * This must be setted before calling AddPage, otherwise this callback will not be taken  for the page
+     * @param [type] $callback
+     * @return void
+     */
+    public function setHeader($callback){
+        //die();
+       # echo "yo";
+        $this->headerCallback=$callback;
+    }
+    
+    public function setFooter($callback){
+        $this->footerCallback=$callback;
+    }
+    
+    public function Header()
+    {
+        #echo "me";
+       // \var_dump($this->headerCallback);
+        if($this->headerCallback!==null){
+           # die();
+           $callback=$this->headerCallback;
+            $callback($this);
+        }
+    }
+
+    public   function Footer()
+    {
+        if($this->footerCallback!==null){
+            $callback=$this->footerCallback;
+            $callback($this);
+        }
+    }
+
 }

@@ -7,8 +7,21 @@ require 'DPDF.php';
 use DPDF\DPDF;
 
 $pdf = new DPDF();
-$pdf->AddPage();
 $pdf->SetFont('Arial','B',12);
+$pdf->setHeader(function (DPDF $pdf){
+    $pdf->Text(10,10,"------");
+    $pdf->Ln(20);
+});
+$pdf->setFooter(function(DPDF $pdf){
+    // Position at 1.5 cm from bottom
+    $pdf->SetY(-15);
+    $pdf->SetFont('Arial','I',8);
+    $pdf->Cell(0,10,'Page '.$pdf->PageNo().'/{nb}',0,0,'C');
+    
+   // $pdf->Text(0,10,"Page".$pdf->PageNo().'/{nb}',0,0,'C');
+});
+$pdf->AddPage();
+
 
 $header=[
     [
@@ -56,6 +69,7 @@ foreach ($arrayData as $value) {
     $pdf->draw($tbody);
     $pdf->Ln();
 }
+
 
 $pdf->Output();
 
