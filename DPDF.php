@@ -35,8 +35,31 @@ class DPDF extends FPDF{
         $this->SetDrawColor(...$this->HextoRGB($hexcolor));
     }
     public function SetTextHexColor($hexcolor){
+      
         $this->SetTextColor(...$this->HextoRGB($hexcolor));;
     }
+    public function SetTextColor($r, $g=null, $b=null){
+        $this->lastTextColor=[$r,$g,$b];
+        parent::SetTextColor($r,$g,$b);
+    }
+    /**
+     * Last RGB color used by SetTextColor method and SetTextHexColor
+     *
+     * @var array
+     */
+    public $lastTextColor=[];
+    public function GetLastTextColor(){
+        return $this->lastTextColor;
+    }
+    public function HasLastTextColor():bool{
+        return !empty($this->lastTextColor);
+    }
+    /**
+     * Predominant and default color
+     *
+     * @var array
+     */
+    public $defaultTextColor=[0,0,0];
     public function GetRMargin(){
         return $this->rMargin;
     }
@@ -64,15 +87,15 @@ class DPDF extends FPDF{
         $this->SetFont($this->lastFont['family'],$style,$this->lastFont['size']);
         
     }
-    public $lastSize=0;
+    #public $lastSize=0;
     public $lastFont=[];
     public function GetLastFont(){
         return $this->lastFont;
     }
     public function SetFont($family, $style='', $size=0){
         
-        $this->lastSize=$size;
-        $this->lastFont=$family;
+        #$this->lastSize=$size;
+        #$this->lastFont=$family;
         $this->lastFont=['family'=>$family,'style'=>$style,'size'=>$size];
         parent::SetFont($family, $style, $size);
     }
@@ -83,6 +106,12 @@ class DPDF extends FPDF{
     #print_r($pdf);
     #$currentFont=$this->SetFontSize
     $lastFont=$this->GetLastFont();
+    if($this->HasLastTextColor()){
+        $lastTextColor=$this->GetLastTextColor();
+    }else{
+        $lastTextColor=$this->defaultTextColor;
+    }
+    
     foreach ($header as  $value) {
         if(!is_array($value)){
             $value=['text'=>$value];
@@ -108,6 +137,9 @@ class DPDF extends FPDF{
              $this->SetFontStyle($value['style']);
           # $this->SetFont('Arial',$value['style'],18);
         }
+        if(!empty($value['textColor'])){
+            $this->SetTextHexColor($value['textColor']);
+        }
         
     
         $this->Cell($wc,$heigth,$value['text'],
@@ -123,6 +155,14 @@ class DPDF extends FPDF{
                 $lastFont['family'],
                 $lastFont['style'],
                 $lastFont['size']
+            );
+        }
+        if (!empty($value['textColor'])) {
+          #  \print_r($lastTextColor);
+            $this->SetTextColor(
+                $lastTextColor[0],
+                $lastTextColor[1],
+                $lastTextColor[2]
             );
         }
     }

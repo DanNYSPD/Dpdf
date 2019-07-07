@@ -24,6 +24,8 @@ $header=[
         "size"=>'20',
         "heigth"=>5,
         "border"=>1,
+        'textColor'=>'#FFFFFF',# allows to change the color for this item, 
+        'fill'=>'#5C1708',
         'weight'=>30 # relativo es el porcentaje!!
     ],
     'heheh'
@@ -40,7 +42,7 @@ foreach ($arrayData as $value) {
             "text"=>$value[0],
             "weight"=>10,
             'font'=>'',
-            'style'=>'I'
+            'style'=>'I' #modifies the style (the font is maintained)
         ],
         [
             "text"=>$value[1],
