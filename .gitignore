@@ -1,0 +1,6 @@
+*.zip
+vendor/
+*.pdf
+tmp/
+fpdf/
+*.rar
