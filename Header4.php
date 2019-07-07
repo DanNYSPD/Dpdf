@@ -29,23 +29,31 @@ $header=[
     'heheh'
 ];
 
-$tbody=[
-    [
-        "text"=>'a',
-        "weight"=>10,
-    ],
-    [
-        "text"=>'otro',
-        "weight"=>30,
-    ],
-    [
-        "text"=>'tercera',
-        #"weight"=>10,
-    ]
-];
+
 $pdf->draw($header);
 $pdf->Ln();
 
-$pdf->draw($tbody);
+$arrayData=[['jaja','hehehe',100],['jaja','hehehe',100],['jaja','hehehe',100],['jaja','hehehe',100],['jaja','hehehe',100]];
+foreach ($arrayData as $value) {
+    $tbody=[
+        [
+            "text"=>$value[0],
+            "weight"=>10,
+            'font'=>'',
+            'style'=>'I'
+        ],
+        [
+            "text"=>$value[1],
+            "weight"=>30,
+        ],
+        [
+            "text"=>$value[2],
+            #"weight"=>10,
+        ]
+    ];
+    $pdf->draw($tbody);
+    $pdf->Ln();
+}
+
 $pdf->Output();
 

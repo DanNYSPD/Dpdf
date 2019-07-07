@@ -46,30 +46,58 @@ class DPDF extends FPDF{
     public function GetWithWithoutMargin(){
         return $this->GetPageWidth()-($this->GetLMargin()+$this->GetRMargin());
     }
-
+    /**
+     * En ocasiones solo se quiere cambiar el font style y no toda la fuente
+     *
+     * @return void
+     */
+    public function SetFontStyle($style){
+        $this->FontStyle = $style;
+       // die($this->lastSize);
+       #print_r([$this->FontFamily,$style,$this->lastSize,$this->lastFont]);
+       #die();
+        $this->SetFont($this->lastFont,$style,$this->lastSize);
+        
+    }
+    public $lastSize=0;
+    public $lastFont='';
+    public function SetFont($family, $style='', $size=0){
+        
+        $this->lastSize=$size;
+        $this->lastFont=$family;
+        parent::SetFont($family, $style, $size);
+    }
+    
     public function draw($header){
         $w=$this->GetWithWithoutMargin();
         $wc=$w/count($header);
     #print_r($pdf);
+    #$currentFont=$this->SetFontSize
     foreach ($header as  $value) {
         if(!is_array($value)){
             $value=['text'=>$value];
         }
-            $align=$value['align']??'C';
-            $heigth=$value['heigth']??10;
-            $border=$value['border']??1;
-            $fill=$value['fill']??false;
-    
-            if(!empty($value['fill'])){
-                $this->SetFillHexadecimalColor($fill);
-                $fill=true;
-            }
-    
-            if(!empty($value['weight'])){
+        $align=$value['align']??'C';
+        $heigth=$value['heigth']??10;
+        $border=$value['border']??1;
+        $fill=$value['fill']??false;
+
+        if(!empty($value['fill'])){
+            $this->SetFillHexadecimalColor($fill);
+            $fill=true;
+        }
+
+        if(!empty($value['weight'])){
             $w=$value['weight'];
             $pw=$this->GetPageWidth();
             $wc=($w/100)*$pw; #sacamos el valor relaivo
-            }
+        }
+
+        if (!empty($value['style'])) {
+           # $style=
+             $this->SetFontStyle($value['style']);
+          # $this->SetFont('Arial',$value['style'],18);
+        }
         
     
         $this->Cell($wc,$heigth,$value['text'],
@@ -77,7 +105,11 @@ class DPDF extends FPDF{
         0,# con esto hace que sea una linea seguida
         $align,
         $fill
-        );    
+        );
+        if(!empty($value['style'])){
+            #$this->SetFontStyle($value['style']);
+            $this->SetFontStyle('');
+        }
     }
     }
 }
