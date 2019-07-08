@@ -93,7 +93,7 @@ class DPDF extends FPDF{
         return $this->lastFont;
     }
     public function SetFont($family, $style='', $size=0){
-        
+        $style=$style=='N'?'':$style;
         #$this->lastSize=$size;
         #$this->lastFont=$family;
         $this->lastFont=['family'=>$family,'style'=>$style,'size'=>$size];
@@ -166,7 +166,7 @@ class DPDF extends FPDF{
         }
         
         #$lnItem=$specialObject==null?$ln:0;
-        $y=$this->GetY();
+        #$y=$this->GetY();
         $this->Cell($wc,$height,$value['text'],
             $border,#border
             $ln,# 0=con esto hace que sea una linea seguida
@@ -178,7 +178,8 @@ class DPDF extends FPDF{
             #debo tratar de que se mantenga en la misma linea, necesito el withd del text y no el de la celda
             #note, for some reason I cannot put the text with Text function in a precisely way, the coordenades fail, so I have to use cell again.
             #
-            $currentFont['style']='I';
+            $currentFont['style']=$specialObject->text['style']??$currentFont['style'];
+
             $this->SetFont($currentFont['family'],$currentFont['style'],$currentFont['size']);
             $strWith=$this->GetStringWidth($value['text']);
             #$this->Text($this->GetX()+$wc,$this->GetY()-$height/2,$specialObject->text['text']);

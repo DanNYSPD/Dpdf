@@ -22,7 +22,10 @@ $pdf->setHeader(function (DPDF $pdf){
                 ],
                 'text'=>[
                     'text'=>'daniel',
-                ]                
+                    'style'=>'N',
+                    'align'=>'R'
+
+                ]
             ]
         ),       
         [
