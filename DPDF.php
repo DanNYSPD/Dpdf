@@ -283,6 +283,12 @@ class DPDF extends FPDF{
         
         $this->Cell($this->GetWithWithoutMargin(),$height,$text,$border,1);
     }
+
+    public function AddImageFromBase64(string $base64,$x=null, $y=null, $w=0, $h=0, $type='', $link=''){
+        $base="data:image/jpeg;base64,";      
+        #need to add a condition to detect the mime type  
+        $this->Image($base.$base64,$x,$y,$w,$h,$type,$link);
+    }
 }
 
 class LabelAndText{

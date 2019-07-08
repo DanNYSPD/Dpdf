@@ -79,8 +79,10 @@ $pdf->setHeader(function (DPDF $pdf){
     $heigh=$pdf->GetY()-5;#this five is because the last height(cell adds height to y when ln>0)
     $pdf->SetXY(($pdf->GetWithWithoutMargin()/3)*2,10);
     try{
-    $pdf->Image(
-        "data:image/jpeg;base64,".
+        #https://stackoverflow.com/questions/18484632/print-base64-coded-image-into-a-fpdf-document
+        #https://www.adobe.com/content/dam/acom/en/devnet/acrobat/pdfs/PDF32000_2008.pdf
+        #https://www.adobe.com/content/dam/acom/en/devnet/pdf/pdfs/pdf_reference_archives/PDFReference.pdf
+    $pdf->AddImageFromBase64(
         base64_encode(file_get_contents('logo.jpeg')),
         $pdf->GetX(),
         $pdf->GetY(),
