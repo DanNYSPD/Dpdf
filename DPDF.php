@@ -271,7 +271,18 @@ class DPDF extends FPDF{
     public static function isLabel($v):bool{
         return $v instanceof LabelAndText;
     }
-    
+    /**
+     * Adds a new cell with the Page Width as width (so it fill the whole row)
+     *
+     * @param [type] $text
+     * @param integer $height
+     * @param integer $border
+     * @return void
+     */
+    public function CellRow($text,$height=7,$border=0){
+        
+        $this->Cell($this->GetWithWithoutMargin(),$height,$text,$border,1);
+    }
 }
 
 class LabelAndText{

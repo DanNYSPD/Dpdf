@@ -49,11 +49,9 @@ $pdf->setHeader(function (DPDF $pdf){
             'fill'=>'#FF5733',
         ]
     ]);
-    #echo($pdf->GetPageWidth()."\n");
-    #die(($pdf->GetPageWidth()/3));
-    #$pdf->SetX(($pdf->GetWithWithoutMargin()/3)*1);
+    
     $pdf->SetXY(($pdf->GetWithWithoutMargin()/3)*1,10);
-    #$pdf->SetY(50);
+    
 
     $pdf->column([
         [
@@ -78,6 +76,22 @@ $pdf->setHeader(function (DPDF $pdf){
             'fill'=>'#FF5733',
         ]
     ]);
+    $heigh=$pdf->GetY()-5;#this five is because the last height(cell adds height to y when ln>0)
+    $pdf->SetXY(($pdf->GetWithWithoutMargin()/3)*2,10);
+    try{
+    $pdf->Image(
+        "data:image/jpeg;base64,".
+        base64_encode(file_get_contents('logo.jpeg')),
+        $pdf->GetX(),
+        $pdf->GetY(),
+        ($pdf->GetWithWithoutMargin()/3),
+        $heigh,
+        'jpeg'
+    );
+}catch(Exception $e){
+    print_r($e);
+}
+
    # $pdf->draw();
     $pdf->Ln(20);
 
@@ -115,7 +129,13 @@ $header=[
     'heheh'
 ];
 
-
+$pdf->CellRow('Table with XXXXXXX ');
+#or
+$pdf->draw([[
+    'text'=>'titulo',
+    'weight'=>100,
+    'border'=>false
+]],1);
 $pdf->draw($header);
 $pdf->Ln();
 
