@@ -10,26 +10,62 @@ $pdf = new DPDF();
 $pdf->SetFont('Arial','B',12);
 $pdf->setHeader(function (DPDF $pdf){
 
-    /*
-    $pdf->Text(10,10,"------");
-    $pdf->Text(10,10,"------");
-    $pdf->Text(10,10,"------");
-    $pdf->Text(10,10,"------");
-    */
-    /*
-    $pdf->Cell(30,7,'Title',1,1,'C');
-    $pdf->Cell(30,7,'Title',1,1,'C');
-    $pdf->Cell(30,7,'Title',1,1,'C');
-    */
     $pdf->column([
-        'da',
-        'dsads',[
-        "text"=>"hdhsadsa",
-        "align"=>"C",
-        "size"=>'10',
-        'weight'=>10,
-        'fill'=>'#FF5733',
-    ]]);
+        [
+            'text'=>'name:',
+            'align'=>'L',
+            'weight'=>28,
+            'border'=>false,
+            'style'=>'B'
+        ],
+        [
+            'text'=>'email simple:',
+            'align'=>'L',
+            'weight'=>28,
+            'border'=>false,
+            'style'=>'N'
+
+        ],
+        [
+            "text"=>"hdhsadsa",
+            "align"=>"L",
+            "size"=>5,
+            'style'=>'N',
+            'weight'=>10,
+            'height'=>5,
+            'border'=>false,
+            'fill'=>'#FF5733',
+        ]
+    ]);
+    #echo($pdf->GetPageWidth()."\n");
+    #die(($pdf->GetPageWidth()/3));
+    #$pdf->SetX(($pdf->GetWithWithoutMargin()/3)*1);
+    $pdf->SetXY(($pdf->GetWithWithoutMargin()/3)*1,10);
+    #$pdf->SetY(50);
+
+    $pdf->column([
+        [
+            'text'=>'name:',
+            'align'=>'L',
+            'weight'=>30
+
+        ],
+        [
+            'text'=>'email:',
+            'align'=>'L',
+            'weight'=>30
+
+        ],
+        [
+            "text"=>"hdhsadsa",
+            "align"=>"L",
+            "size"=>10,
+            'weight'=>10,
+            'height'=>5,
+            'border'=>false,
+            'fill'=>'#FF5733',
+        ]
+    ]);
    # $pdf->draw();
     $pdf->Ln(20);
 
@@ -50,7 +86,7 @@ $header=[
     [
         "text"=>"hdhsadsa",
         "align"=>"C",
-        "size"=>'20',
+        "size"=>15,
         'weight'=>10,
         'fill'=>'#FF5733', # cuando tiene este valor se rellena de este color
     ],
@@ -58,7 +94,7 @@ $header=[
         "text"=>"dsadsa",
         "align"=>"C",
         "size"=>'20',
-        "heigth"=>5,
+        "height"=>5,
         "border"=>1,
         'textColor'=>'#FFFFFF',# allows to change the color for this item, 
         'fill'=>'#5C1708',

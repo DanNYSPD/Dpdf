@@ -113,6 +113,8 @@ class DPDF extends FPDF{
     $lastSize=$this->FontSizePt;
     
     foreach ($header as  $value) {
+        $fontModified=false;
+        $currentFont=$lastFont;
         if(!is_array($value)){
             $value=['text'=>$value];
         }
@@ -133,8 +135,12 @@ class DPDF extends FPDF{
         }
 
         if (!empty($value['style'])) {
-           # $style=
-             $this->SetFontStyle($value['style']);
+            $value['style']=$value['style']=='N'?'':$value['style']; # fpdf doesn't have N , it's '' which is normal, so I use N to represent this style, the reason is because I found more  intuitive use N , and because '' gives true in emtpy.
+            $currentFont['style']=$value['style'];
+             #$this->SetFontStyle($value['style']);# something wrong happen here so my new idea is just to copy the last font and modify it according to this values.
+             
+          $this->SetFont($currentFont['family'],$currentFont['style'],$currentFont['size']);
+          $fontModified=true;# I set this flag to indicate that a new font was setted up.
           # $this->SetFont('Arial',$value['style'],18);
         }
         if(!empty($value['textColor'])){
@@ -142,6 +148,7 @@ class DPDF extends FPDF{
         }
         if(!empty($value['size'])){
             $this->SetFontSize($value['size']);
+            $fontModified=true;
         }
         
     
@@ -151,7 +158,8 @@ class DPDF extends FPDF{
         $align,
         $fill
         );
-        if(!empty($value['style'])){
+        #if(!empty($value['style'])){
+            if($fontModified){
             #$this->SetFontStyle($value['style']);
             #$this->SetFontStyle('');
             $this->SetFont(
@@ -167,10 +175,10 @@ class DPDF extends FPDF{
                 $lastTextColor[1],
                 $lastTextColor[2]
             );
-        }
+        }/*
         if (!empty($value['size'])) {
             $this->SetFontSize($lastSize);
-        }
+        }*/
     }
     }
     public function column($column,$mode=2){
