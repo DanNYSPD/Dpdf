@@ -115,8 +115,22 @@ class DPDF extends FPDF{
     foreach ($header as  $value) {
         $fontModified=false;
         $currentFont=$lastFont;
+        /**
+         * @var  LabelAndText $specialObject
+         */
+        $specialObject=null;
         if(!is_array($value)){
-            $value=['text'=>$value];
+            if(\is_string($value)){
+               $value=['text'=>$value]; #if it is text just tranform it to an array
+            }else if(self::isLabel($value)){
+                #if it is a label ..
+                /**
+                 * @var LabelAndText $specialObject
+                 */
+                $specialObject=$value;
+                $specialObject->label;
+                $value=$specialObject->label;
+            }
         }
         $align=$value['align']??'C';
         $height=$value['height']??10;
@@ -151,17 +165,38 @@ class DPDF extends FPDF{
             $fontModified=true;
         }
         
-    
+        #$lnItem=$specialObject==null?$ln:0;
+        $y=$this->GetY();
         $this->Cell($wc,$height,$value['text'],
-        $border,#border
-        $ln,# 0=con esto hace que sea una linea seguida
-        $align,
-        $fill
+            $border,#border
+            $ln,# 0=con esto hace que sea una linea seguida
+            #$lnItem,# 0=con esto hace que sea una linea seguida
+            $align,
+            $fill
         );
-        #if(!empty($value['style'])){
-            if($fontModified){
-            #$this->SetFontStyle($value['style']);
-            #$this->SetFontStyle('');
+        if($specialObject!=null){
+            #debo tratar de que se mantenga en la misma linea, necesito el withd del text y no el de la celda
+            #note, for some reason I cannot put the text with Text function in a precisely way, the coordenades fail, so I have to use cell again.
+            #
+            $currentFont['style']='I';
+            $this->SetFont($currentFont['family'],$currentFont['style'],$currentFont['size']);
+            $strWith=$this->GetStringWidth($value['text']);
+            #$this->Text($this->GetX()+$wc,$this->GetY()-$height/2,$specialObject->text['text']);
+            #$this->Text($this->GetX()+($wc-$strWith)/2,$y,$specialObject->text['text']);
+            #I take the X coordenade before to put the text because  the cell function modifies this value, and it's necesary
+            #to restore it as if none cell function was called it.
+            $x= $this->GetX();
+            $this->SetXY(
+                $this->GetX()+$strWith+10,
+                $this->GetY()-$height
+            );
+            $this->Cell($wc,$height,$specialObject->text['text'],
+            $border,#border
+            $ln);
+            $this->SetX($x);# restore the X coordenate
+        }
+        
+        if($fontModified){            
             $this->SetFont(
                 $lastFont['family'],
                 $lastFont['style'],
@@ -175,10 +210,8 @@ class DPDF extends FPDF{
                 $lastTextColor[1],
                 $lastTextColor[2]
             );
-        }/*
-        if (!empty($value['size'])) {
-            $this->SetFontSize($lastSize);
-        }*/
+        }
+        
     }
     }
     public function column($column,$mode=2){
@@ -221,5 +254,21 @@ class DPDF extends FPDF{
             $callback($this);
         }
     }
+    public static function Label($config):LabelAndText{
+        $label= new LabelAndText($config['label'],$config['text']);
+        return $label;
+    }
+    public static function isLabel($v):bool{
+        return $v instanceof LabelAndText;
+    }
     
+}
+
+class LabelAndText{
+    public $label;
+    public $text;
+    public function __construct($label,$text){
+        $this->label=$label;
+        $this->text=$text;
+    }
 }

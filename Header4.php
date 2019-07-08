@@ -11,13 +11,20 @@ $pdf->SetFont('Arial','B',12);
 $pdf->setHeader(function (DPDF $pdf){
 
     $pdf->column([
-        [
-            'text'=>'name:',
-            'align'=>'L',
-            'weight'=>28,
-            'border'=>false,
-            'style'=>'B'
-        ],
+        DPDF::Label(
+            [
+                'label'=>[
+                    'text'=>'name:',
+                    'align'=>'L',
+                    'weight'=>28,
+                    'border'=>false,
+                    'style'=>'B'
+                ],
+                'text'=>[
+                    'text'=>'daniel',
+                ]                
+            ]
+        ),       
         [
             'text'=>'email simple:',
             'align'=>'L',
