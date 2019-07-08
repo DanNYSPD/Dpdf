@@ -18,7 +18,8 @@ $pdf->setHeader(function (DPDF $pdf){
                     'align'=>'L',
                     'weight'=>28,
                     'border'=>false,
-                    'style'=>'B'
+                    'style'=>'B',
+                    'height'=>3
                 ],
                 'text'=>[
                     'text'=>'daniel',
@@ -33,13 +34,14 @@ $pdf->setHeader(function (DPDF $pdf){
             'align'=>'L',
             'weight'=>28,
             'border'=>false,
-            'style'=>'N'
+            'style'=>'N',
+            'height'=>3
 
         ],
         [
             "text"=>"hdhsadsa",
             "align"=>"L",
-            "size"=>5,
+            "size"=>7,
             'style'=>'N',
             'weight'=>10,
             'height'=>5,

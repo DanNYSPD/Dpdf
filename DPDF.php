@@ -179,21 +179,30 @@ class DPDF extends FPDF{
             #note, for some reason I cannot put the text with Text function in a precisely way, the coordenades fail, so I have to use cell again.
             #
             $currentFont['style']=$specialObject->text['style']??$currentFont['style'];
+            $alignSpecial=$specialObject->text['align']??'C';
+            $strWith=$this->GetStringWidth($value['text']);
 
             $this->SetFont($currentFont['family'],$currentFont['style'],$currentFont['size']);
-            $strWith=$this->GetStringWidth($value['text']);
             #$this->Text($this->GetX()+$wc,$this->GetY()-$height/2,$specialObject->text['text']);
             #$this->Text($this->GetX()+($wc-$strWith)/2,$y,$specialObject->text['text']);
             #I take the X coordenade before to put the text because  the cell function modifies this value, and it's necesary
             #to restore it as if none cell function was called it.
             $x= $this->GetX();
             $this->SetXY(
-                $this->GetX()+$strWith+10,
+                $this->GetX()+$strWith+10,# falta implmentar left, rigth
                 $this->GetY()-$height
             );
-            $this->Cell($wc,$height,$specialObject->text['text'],
+            /**
+             * I calculate the cell width (is the same less the label width , less the this text width)
+             */
+            $cWidth=$wc-($strWith+$this->GetStringWidth($specialObject->text['text']));
+            $this->Cell(
+                $cWidth,# the with must not include the wtih
+            $height,$specialObject->text['text'],
             $border,#border
-            $ln);
+            $ln,
+            $alignSpecial
+        );
             $this->SetX($x);# restore the X coordenate
         }
         
