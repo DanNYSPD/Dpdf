@@ -117,7 +117,7 @@ class DPDF extends FPDF{
             $value=['text'=>$value];
         }
         $align=$value['align']??'C';
-        $heigth=$value['heigth']??10;
+        $height=$value['height']??10;
         $border=$value['border']??1;
         $fill=$value['fill']??false;
 
@@ -128,7 +128,7 @@ class DPDF extends FPDF{
 
         if(!empty($value['weight'])){
             $w=$value['weight'];
-            $pw=$this->GetPageWidth();
+            $pw=$this->GetWithWithoutMargin();# must not consider margin
             $wc=($w/100)*$pw; #sacamos el valor relaivo
         }
 
@@ -141,11 +141,11 @@ class DPDF extends FPDF{
             $this->SetTextHexColor($value['textColor']);
         }
         if(!empty($value['size'])){
-            #$this->SetFontSize($value['size']);
+            $this->SetFontSize($value['size']);
         }
         
     
-        $this->Cell($wc,$heigth,$value['text'],
+        $this->Cell($wc,$height,$value['text'],
         $border,#border
         $ln,# 0=con esto hace que sea una linea seguida
         $align,
@@ -173,8 +173,8 @@ class DPDF extends FPDF{
         }
     }
     }
-    public function column($column){
-        $this->draw($column,1);
+    public function column($column,$mode=2){
+        $this->draw($column,$mode);#2= above (default) or 1, nextLine
     }
 
     public $headerCallback=null;
