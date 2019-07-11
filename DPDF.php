@@ -235,18 +235,36 @@ class DPDF extends FPDF{
                     $lastXMulticell = $this->getX()+$wc; 
                     $lastYMulticell=$this->GetY();
                 }
-                #$height = (ceil(($this->GetStringWidth($value['text']) / $wc)) * $height);
-                $this->MultiCell($wc, $height/3, $value['text'],
+                #divido el largo del string por el cnago para obtener cuandos "row tendra", se umuitiñplca por height y se obtiene el heigut que tendra
+                #$finalProxHeight = (ceil(($this->GetStringWidth($value['text']) / $wc)) * $height);
+                $rows=$this->GetStringWidth($value['text']) / $wc;
+                $rows+=substr_count( $value['text'], "\n" ); # se le suman los salto de linea
+                #sino llega a 1, entonces por defecto ocupara una row
+                $finalProxHeight = (floor(($rows>1?$rows:1)) * $height); #calculo el height
+               # $this->Line($this->GetX(),$this->GetY(),$this->GetX()+50,$this->GetY()+$finalProxHeight);
+                if($height==$finalProxHeight){
+                    $this->MultiCell($wc, $height/1, $value['text'],
                     $border,
                     $align,
                     $fill
                 );
+                }else{
+                    $this->MultiCell($wc, $height/2, $value['text'],
+                    $border,
+                    $align,
+                    $fill
+                );
+                }
+
+               
+                 
             }
             if ($specialObject != null) {
                 #debo tratar de que se mantenga en la misma linea, necesito el withd del text y no el de la celda
                 #note, for some reason I cannot put the text with Text function in a precisely way, the coordenades fail, so I have to use cell again.
                 #
                 $currentFont['style'] = $specialObject->text['style'] ?? $currentFont['style'];
+                $currentFont['size'] = $specialObject->text['size'] ?? $currentFont['size'];
                 $alignSpecial = $specialObject->text['align'] ?? 'C';
                 $strWith = $this->GetStringWidth($value['text']);
 
@@ -377,6 +395,11 @@ class DPDF extends FPDF{
     {
         // Get current page width
         return $this->w;
+    }
+    public function SetXOffSet($px){
+        $pw = $this->GetWithWithoutMargin();       
+        $newX=(($px/100)*$pw) +$this->lMargin;
+        $this->SetX(  $newX);        
     }
 }
 
