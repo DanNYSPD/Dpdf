@@ -100,6 +100,18 @@ class DPDF extends FPDF{
         parent::SetFont($family, $style, $size);
     }
     
+    public $defaultBorder=0;
+    public function setDefaultBorder($value){
+        $this->defaultBorder=$value;
+    }
+    public $defaultHeight=8;
+    public function setDefaultHeight($value){
+        $this->defaultHeight=$value;
+    }
+    public $defaultAlign='L';
+    public function setDefaultAlign($value){
+        $this->defaultAlign=$value;
+    }
     public function draw($header,$ln=0){
         $w=$this->GetWithWithoutMargin();
         $wc=$w/count($header);
@@ -134,9 +146,9 @@ class DPDF extends FPDF{
                 $value=$specialObject->label;
             }
         }
-        $align=$value['align']??'L';
-        $height=$value['height']??10;
-        $border=$value['border']??1;
+        $align=$value['align']??$this->defaultAlign;
+        $height=$value['height']??$this->defaultHeight;
+        $border=$value['border']??$this->defaultBorder;
         $fill=$value['fill']??false;
         $auto=$value['auto']??false;
 
