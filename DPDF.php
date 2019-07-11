@@ -112,6 +112,8 @@ class DPDF extends FPDF{
     }
     $lastSize=$this->FontSizePt;
     
+
+    $lastXMulticell=null;#solo util cuando se desean columnas,ln=2
     foreach ($header as  $value) {
         $fontModified=false;
         $currentFont=$lastFont;
@@ -132,10 +134,11 @@ class DPDF extends FPDF{
                 $value=$specialObject->label;
             }
         }
-        $align=$value['align']??'C';
+        $align=$value['align']??'L';
         $height=$value['height']??10;
         $border=$value['border']??1;
         $fill=$value['fill']??false;
+        $auto=$value['auto']??false;
 
         if(!empty($value['fill'])){
             $this->SetFillHexadecimalColor($fill);
@@ -167,6 +170,14 @@ class DPDF extends FPDF{
         
         #$lnItem=$specialObject==null?$ln:0;
         #$y=$this->GetY();
+        if(!$auto){
+            #si hubo un multicell atras de este celda y esta en modo columnas, alinea en el eje X.
+            if($ln==2&& $lastXMulticell!=null)#si desea que sean columnas
+            {
+                $this->SetX($lastXMulticell);
+                $lastXMulticell=null;
+            }
+            
         $this->Cell($wc,$height,$value['text'],
             $border,#border
             $ln,# 0=con esto hace que sea una linea seguida
@@ -174,6 +185,18 @@ class DPDF extends FPDF{
             $align,
             $fill
         );
+    }else{
+        if($ln==2)#si desea que sean columnas
+            {
+             //quiero conservar x para que esten alineadas como columnas:
+                $lastXMulticell=$this->getX();      
+            }
+        $this->MultiCell($wc,$height/3,$value['text'],
+        $border,
+        $align,
+        $fill
+         );
+    }
         if($specialObject!=null){
             #debo tratar de que se mantenga en la misma linea, necesito el withd del text y no el de la celda
             #note, for some reason I cannot put the text with Text function in a precisely way, the coordenades fail, so I have to use cell again.
@@ -288,6 +311,13 @@ class DPDF extends FPDF{
         $base="data:image/jpeg;base64,";      
         #need to add a condition to detect the mime type  
         $this->Image($base.$base64,$x,$y,$w,$h,$type,$link);
+    }
+
+    public function AddX(int $xRelative){
+        $this->SetX($this->GetX()+$xRelative);
+    }
+    public function AddY(int $yRelative){
+        $this->SetY($this->GetY()+$yRelative);
     }
 }
 
