@@ -1,0 +1,3 @@
+evaluate to change to tFPDF or mpdf as new core, instead of fpdf (or continue adding feactures.)
+
+#http://www.fpdf.org/en/script/script92.php
