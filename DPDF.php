@@ -217,7 +217,9 @@ class DPDF extends FPDF{
                     $lastXMulticell = null;
                     $lastYMulticell=null;
                 }
-
+                if(!isset($value['text'])){
+                    $value['text']='';
+                }
                 $this->Cell($wc, $height, $value['text'],
                     $border, #border
                     $ln, # 0=con esto hace que sea una linea seguida
@@ -310,7 +312,7 @@ class DPDF extends FPDF{
 
         }
     }
-    public function column($column, $mode = 2)
+    public function inColumn($column, $mode = 2)
     {
         $this->draw($column, $mode); #2= above (default) or 1, nextLine
     }
@@ -401,6 +403,74 @@ class DPDF extends FPDF{
         $newX=(($px/100)*$pw) +$this->lMargin;
         $this->SetX(  $newX);        
     }
+    public function CalculateRealSize($px,$calcualed=-1){
+        $pw = $calcualed>0?$calcualed:$this->GetWithWithoutMargin();       
+        return $newX=(($px/100)*$pw);
+    }
+    public static function Column($config,$children):Container{
+        return new Column($config,$children);
+    }
+    public static function Row($config,$children):Container{
+        return new Row($config,$children);
+    }
+    public static function Cello($config):Cell{
+        return new Cell($config);
+    }
+
+    public  function Table(Container $container){
+        //print_r($container);
+        if($container instanceof Column||$container instanceof Row){ //direct child will have the this form
+            #antes de que inice respaldo
+            $x=$this->GetX();
+            #$withdParent= $this->CalculateRealSize($container->config['weight']);
+            $withdParent= ($container->config['weight']);
+            $this->draw(
+                [
+                   $container->config
+                ]
+            );
+            $numChildren=count($container->children);
+            $this->SetX($x);
+            foreach ($container->children as $child) {
+               
+                if(isset($child->config['weight'])){
+                    $child->config['weight']= $child->RecalculateWeightFromParent();
+                }
+                $y=$this->GetY();
+                $x=$this->GetX();
+                if($child instanceof Row){
+                    $this->inColumn([
+                        $child->config
+                    ]);
+                }
+                #$weight=$child->config['weight'];
+                #$withd= $this->CalculateRealSize($weight);
+                $this->SetY( $y);
+                $this->SetX( $x);
+               #echo json_encode($child->children);
+                foreach ($child->children  as $subChild) {
+                    #echo (\json_encode($subChild));
+                   #if($subChild instanceof Cell){
+                       $subChild->parent=$child;
+                       if(!isset($subChild->config['weight'])){
+                            $subChild->config['weight']= $child->config['weight'];
+                            
+
+                       }else{
+                            $subChild->config['weight']= $subChild->RecalculateWeightFromParent();
+
+                           
+                       }
+                       $this->draw([$subChild->config]);
+                   #}
+                }
+                $this->Ln();
+            }
+        } else{ //si es celda
+            $this->draw([$subChild->config]);
+
+        }
+    }
 }
 
 class LabelAndText
@@ -411,5 +481,57 @@ class LabelAndText
     {
         $this->label = $label;
         $this->text = $text;
+    }
+}
+class Container {
+    public $children;
+    public $config;
+    /**
+     * Undocumented variable
+     *
+     * @var Container
+     */
+    public $parent;
+    public function __construct($config,$children){
+         $this->children=$children;
+         $this->config=$config;
+    
+         foreach ($children as $key => $child) {
+             $child->parent=$this;
+         }    
+    }
+    public function getWeight(){
+        return $this->config['weight'];
+    }
+    public function RecalculateWeightFromParent(){
+        if($this->parent==null){
+            return -1;
+        }
+        return ($this->parent->getWeight()/100)*$this->getWeight();
+    }
+}   
+class Column  extends Container{
+
+}
+
+class Row  extends Container{
+
+}
+class Cell {
+    public $config;
+    public $parent;
+
+    public function getWeight(){
+        return $this->config['weight'];
+    }
+    public function __construct($config){
+        $this->config=$config;
+      
+    }
+    public function RecalculateWeightFromParent(){
+        if($this->parent==null){
+            return -1;
+        }
+        return ($this->parent->getWeight()/100)*$this->getWeight();
     }
 }
