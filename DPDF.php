@@ -403,6 +403,13 @@ class DPDF extends FPDF{
         $newX=(($px/100)*$pw) +$this->lMargin;
         $this->SetX(  $newX);        
     }
+    /**
+     * px wegith 
+     *
+     * @param [type] $px
+     * @param integer $calcualed
+     * @return void
+     */
     public function CalculateRealSize($px,$calcualed=-1){
         $pw = $calcualed>0?$calcualed:$this->GetWithWithoutMargin();       
         return $newX=(($px/100)*$pw);
@@ -417,7 +424,7 @@ class DPDF extends FPDF{
         return new Cell($config);
     }
 
-    public  function Table(Container $container){
+    public  function Table( $container){
         //print_r($container);
         if($container instanceof Column||$container instanceof Row){ //direct child will have the this form
             #antes de que inice respaldo
@@ -448,6 +455,24 @@ class DPDF extends FPDF{
                 $this->SetY( $y);
                 $this->SetX( $x);
                #echo json_encode($child->children);
+               if($child instanceof Cell){
+                   $autox=$this->GetX();
+                   $autoy=$this->GetY();
+                   
+                   $this->Table($child);
+                   if($child->IsAuto()){ ##hay que detemerninar tambien si ess horizontal o vertical
+                    $tWeight= $child->getWeight();
+                    
+                    $realWidht= $this->CalculateRealSize($tWeight);
+                    #$autox=$autox+$realWidht+$this->lMargin+2;
+                    $autox=$autox+$realWidht; //le sumo a X el withd que se supone cubrira
+                    $this->SetXY($autox,$autoy);
+                  }else {
+                      #echo "NO";
+                  }
+                    continue;
+               }
+
                 foreach ($child->children  as $subChild) {
                     #echo (\json_encode($subChild));
                    #if($subChild instanceof Cell){
@@ -467,7 +492,7 @@ class DPDF extends FPDF{
                 $this->Ln();
             }
         } else{ //si es celda
-            $this->draw([$subChild->config]);
+            $this->draw([$container->config]);
 
         }
     }
@@ -484,6 +509,7 @@ class LabelAndText
     }
 }
 class Container {
+    use Common;
     public $children;
     public $config;
     /**
@@ -517,7 +543,14 @@ class Column  extends Container{
 class Row  extends Container{
 
 }
+
+trait Common {
+    public function IsAuto(){
+        return $this->config['auto']??false;
+    }
+}
 class Cell {
+    use Common;
     public $config;
     public $parent;
 
