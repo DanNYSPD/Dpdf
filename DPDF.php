@@ -441,6 +441,11 @@ class DPDF extends FPDF{
                
                 if(isset($child->config['weight'])){
                     $child->config['weight']= $child->RecalculateWeightFromParent();
+                }else{
+                   #when there is not a weight , then calculate it from its parent's tWeight divided into the children number
+                    $child->config['weight']= $child->parent->getWeight()/$child->parent->CountChildren();
+                    #$child->config['weight']= $child->RecalculateWeightFromParent();
+
                 }
                 $y=$this->GetY();
                 $x=$this->GetX();
@@ -526,26 +531,6 @@ class DPDF extends FPDF{
                   }
                     continue;
                }
-               /*
-                foreach ($child->children  as $subChild) {
-                    #echo (\json_encode($subChild));
-                   #if($subChild instanceof Cell){
-                       $subChild->parent=$child;
-                       if(!isset($subChild->config['weight'])){
-                            $subChild->config['weight']= $child->config['weight'];
-                            
-
-                       }else{
-                            $subChild->config['weight']= $subChild->RecalculateWeightFromParent();
-
-                           
-                       }
-                       $this->draw([$subChild->config]);
-                   #}
-                }
-                $this->Ln();
-                */
-                
             }
         } else{ //si es celda
             if($container->IsParentVertical()){
@@ -580,7 +565,7 @@ class Container {
     
          foreach ($children as $key => $child) {
              $child->parent=$this;
-         }    
+         }
     }
    
     public function RecalculateWeightFromParent(){
@@ -588,6 +573,9 @@ class Container {
             return -1;
         }
         return ($this->parent->getWeight()/100)*$this->getWeight();
+    }
+    public function CountChildren():int{
+        return count($this->children);
     }
 }   
 class Vertical  extends Container{
