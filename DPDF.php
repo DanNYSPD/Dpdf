@@ -471,6 +471,7 @@ class DPDF extends FPDF{
                         $currentY
                     );
                     }else if ($child->IsParentVertical()){ #se mueve en Y
+                        $this->Ln();
                         /*
                         $this->GetX();
                         $this->SetX($currentX);
@@ -482,7 +483,7 @@ class DPDF extends FPDF{
                         }
                         */
                     }else{
-                        echo "no tiene parent";
+                        echo "doesn't have parent";
                     }
                     ##$this->SetY( $y);
                     continue;
@@ -509,6 +510,7 @@ class DPDF extends FPDF{
                     $autox=$autox+$realWidht; //le sumo a X el withd que se supone cubrira
                     $this->SetXY($autox,$autoy);
                   }else if($child->IsParentVertical()){
+                     # $this->Ln();
                       #echo "NO";
                     #  $this->AddY($this->defaultHeight);
                       #   $this->AddX($this->CalculateRealSize($realWidht));
