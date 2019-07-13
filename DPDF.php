@@ -442,9 +442,13 @@ class DPDF extends FPDF{
                 if(isset($child->config['weight'])){
                     $child->config['weight']= $child->RecalculateWeightFromParent();
                 }else{
-                   #when there is not a weight , then calculate it from its parent's tWeight divided into the children number
-                    $child->config['weight']= $child->parent->getWeight()/$child->parent->CountChildren();
-                    #$child->config['weight']= $child->RecalculateWeightFromParent();
+                   #when there is not a weight and its parent is Horizontal , then calculate it from its parent's tWeight divided into the children number
+                   if($child->IsParentHorizontal()){
+                        $child->config['weight']= $child->parent->getWeight()/$child->parent->CountChildren();
+                    }else{ #when is parent is vertical we want to fill by default all its parent weight
+                        $child->config['weight']=$child->parent->getWeight();
+                    }
+                    
 
                 }
                 $y=$this->GetY();
