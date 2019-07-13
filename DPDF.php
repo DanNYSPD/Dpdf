@@ -1,5 +1,4 @@
-<?php
-
+<?php declare(strict_types=1);
 namespace DPDF;
 
 use FPDF;
@@ -408,17 +407,17 @@ class DPDF extends FPDF{
      *
      * @param [type] $px
      * @param integer $calcualed
-     * @return void
+     * @return float
      */
-    public function CalculateRealSize($px,$calcualed=-1){
+    public function CalculateRealSize(float $px,$calcualed=-1):float{
         $pw = $calcualed>0?$calcualed:$this->GetWithWithoutMargin();       
         return $newX=(($px/100)*$pw);
     }
-    public static function Column($config,$children):Container{
-        return new Column($config,$children);
+    public static function Vertical($config,$children):Container{
+        return new Vertical($config,$children);
     }
-    public static function Row($config,$children):Container{
-        return new Row($config,$children);
+    public static function Horizontal($config,$children):Container{
+        return new Horizontal($config,$children);
     }
     public static function Cello($config):Cell{
         return new Cell($config);
@@ -426,12 +425,12 @@ class DPDF extends FPDF{
 
     public  function Table( $container){
         //print_r($container);
-        if($container instanceof Column||$container instanceof Row){ //direct child will have the this form
+        if($container instanceof Vertical||$container instanceof Horizontal){ //direct child will have the this form
             #antes de que inice respaldo
             $x=$this->GetX();
             #$withdParent= $this->CalculateRealSize($container->config['weight']);
             $withdParent= ($container->config['weight']);
-            $this->draw(
+            $this->draw( ## this will draw the borders!!
                 [
                    $container->config
                 ]
@@ -445,13 +444,50 @@ class DPDF extends FPDF{
                 }
                 $y=$this->GetY();
                 $x=$this->GetX();
-                if($child instanceof Row){
+                /*
+                if($child instanceof Horizontal){
                     $this->inColumn([
                         $child->config
                     ]);
                 }
-                #$weight=$child->config['weight'];
-                #$withd= $this->CalculateRealSize($weight);
+                */
+                if($child instanceof Container){
+                    $currentX=$this->GetX();
+                    $currentY=$this->GetY();
+                    $this->Table($child);
+                    #dependiendo de si es horizontal o vertical, restaurare sus valores
+                    if($child->IsParentHorizontal()){#se mueve solo en X
+                        #calculo el width que pinto para ese chiild y hago el desplazamiento en X
+                         $this->SetX($currentX+$this->CalculateRealSize($child->getWeight()));
+                         #die("ee");
+                         /*
+                         echo ($currentY);
+                         echo "-";
+                         echo ($this->GetY());
+                         echo "-";
+                         */
+                         #$this->SetY($currentY);
+                        $this->SetXY($currentX+$this->CalculateRealSize($child->getWeight()),
+                        $currentY
+                    );
+                    }else if ($child->IsParentVertical()){ #se mueve en Y
+                        /*
+                        $this->GetX();
+                        $this->SetX($currentX);
+                        die("de");
+                        $this->SetY($currentY-15);
+                      #  $this->SetXY($this->GetX(),$currentY);
+                        if($this->GetY()!=$currenY){
+                            die("error");
+                        }
+                        */
+                    }else{
+                        echo "no tiene parent";
+                    }
+                    ##$this->SetY( $y);
+                    continue;
+                }
+                
                 $this->SetY( $y);
                 $this->SetX( $x);
                #echo json_encode($child->children);
@@ -460,19 +496,35 @@ class DPDF extends FPDF{
                    $autoy=$this->GetY();
                    
                    $this->Table($child);
-                   if($child->IsAuto()){ ##hay que detemerninar tambien si ess horizontal o vertical
-                    $tWeight= $child->getWeight();
-                    
-                    $realWidht= $this->CalculateRealSize($tWeight);
+                   if($child->IsAuto() ){ ##hay que detemerninar tambien si ess horizontal o vertical
+                    //$tWeight= $child->getWeight();
+                    $tWeight_= $child->config['weight'];
+                    if(!$tWeight_){
+                        #echo "error";
+                    }
+                    #$realWidht= $this->CalculateRealSize($child->getWeight());
+                    #echo  $realWidht;
+                    $r=20;
                     #$autox=$autox+$realWidht+$this->lMargin+2;
                     $autox=$autox+$realWidht; //le sumo a X el withd que se supone cubrira
                     $this->SetXY($autox,$autoy);
-                  }else {
+                  }else if($child->IsParentVertical()){
                       #echo "NO";
+                    #  $this->AddY($this->defaultHeight);
+                      #   $this->AddX($this->CalculateRealSize($realWidht));
+                       #  
+                    if(false){ #aqui hay un detalle porque no se de donde tomar X, 
+                         # $this->AddX((int) \ceil($this->CalculateRealSize($child->getWeight()) ));
+                    }else{
+                        #$x
+                    }
+                  }else if($child->IsParentHorizontal() ){
+                       #echo ";";
+                       
                   }
                     continue;
                }
-
+               /*
                 foreach ($child->children  as $subChild) {
                     #echo (\json_encode($subChild));
                    #if($subChild instanceof Cell){
@@ -490,9 +542,16 @@ class DPDF extends FPDF{
                    #}
                 }
                 $this->Ln();
+                */
+                
             }
         } else{ //si es celda
-            $this->draw([$container->config]);
+            if($container->IsParentVertical()){
+                $this->draw([$container->config],2);
+            }else{
+                $this->draw([$container->config],0);
+            }
+            
 
         }
     }
@@ -512,12 +571,7 @@ class Container {
     use Common;
     public $children;
     public $config;
-    /**
-     * Undocumented variable
-     *
-     * @var Container
-     */
-    public $parent;
+    
     public function __construct($config,$children){
          $this->children=$children;
          $this->config=$config;
@@ -526,9 +580,7 @@ class Container {
              $child->parent=$this;
          }    
     }
-    public function getWeight(){
-        return $this->config['weight'];
-    }
+   
     public function RecalculateWeightFromParent(){
         if($this->parent==null){
             return -1;
@@ -536,27 +588,47 @@ class Container {
         return ($this->parent->getWeight()/100)*$this->getWeight();
     }
 }   
-class Column  extends Container{
+class Vertical  extends Container{
 
 }
 
-class Row  extends Container{
+class Horizontal  extends Container{
 
 }
 
 trait Common {
+    public $parent;
+
+    
+    public function getWeight():float{
+        return $this->config['weight'];
+    }
     public function IsAuto(){
         return $this->config['auto']??false;
+    }
+    public function HasParent(){
+        return $this->parent!==null;
+    }
+    public function IsParentVertical(){
+        return $this->parent instanceof Vertical;
+    }
+    public function IsParentHorizontal(){
+        return $this->parent instanceof Horizontal;
+    }
+
+    public function IsVertical(){
+        return $this instanceof Vertical;
+    }
+    public function IsHorizontal(){
+        return $this instanceof Horizontal;
     }
 }
 class Cell {
     use Common;
     public $config;
-    public $parent;
+    
 
-    public function getWeight(){
-        return $this->config['weight'];
-    }
+    
     public function __construct($config){
         $this->config=$config;
       
