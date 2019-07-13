@@ -481,16 +481,8 @@ class DPDF extends FPDF{
                     );
                     }else if ($child->IsParentVertical()){ #se mueve en Y
                         $this->Ln();
-                        /*
-                        $this->GetX();
-                        $this->SetX($currentX);
-                        die("de");
-                        $this->SetY($currentY-15);
-                      #  $this->SetXY($this->GetX(),$currentY);
-                        if($this->GetY()!=$currenY){
-                            die("error");
-                        }
-                        */
+                        $this->SetX($currentX); //we wish that this keeps its X coordenate in order to form a vertical.
+                        
                     }else{
                         echo "doesn't have parent";
                     }
