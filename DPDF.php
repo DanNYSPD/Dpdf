@@ -468,14 +468,7 @@ class DPDF extends FPDF{
                     if($child->IsParentHorizontal()){#se mueve solo en X
                         #calculo el width que pinto para ese chiild y hago el desplazamiento en X
                          $this->SetX($currentX+$this->CalculateRealSize($child->getWeight()));
-                         #die("ee");
-                         /*
-                         echo ($currentY);
-                         echo "-";
-                         echo ($this->GetY());
-                         echo "-";
-                         */
-                         #$this->SetY($currentY);
+                        
                         $this->SetXY($currentX+$this->CalculateRealSize($child->getWeight()),
                         $currentY
                     );
@@ -508,8 +501,14 @@ class DPDF extends FPDF{
                     #echo  $realWidht;
                     $r=20;
                     #$autox=$autox+$realWidht+$this->lMargin+2;
-                    $autox=$autox+$realWidht; //le sumo a X el withd que se supone cubrira
-                    $this->SetXY($autox,$autoy);
+                     #$autox=$autox+$realWidht; //le sumo a X el withd que se supone cubrira
+
+                    if($child->IsParentVertical()){
+
+                    }else{
+                        $this->SetXY($autox,$autoy);
+
+                    }
                   }else if($child->IsParentVertical()){
                      # $this->Ln();
                       #echo "NO";
