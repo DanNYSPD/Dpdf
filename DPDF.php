@@ -38,8 +38,10 @@ class DPDF extends FPDF{
     {
         $this->SetFillColor(...$this->HextoRGB($hexcolor));
     }
+    public $lastHexDrawColor='';
     public function SetDrawHexColor($hexcolor)
     {
+        $this->lastHexDrawColor=$hexcolor;
         $this->SetDrawColor(...$this->HextoRGB($hexcolor));
     }
     public function SetTextHexColor($hexcolor)
@@ -132,7 +134,19 @@ class DPDF extends FPDF{
     {
         $this->defaultAlign = $value;
     }
-    public function draw($header, $ln = 0)
+    public $defaultHexDrawColor='#000000';
+    public function setDefaultHexDrawColor($value):void{
+        $this->defaultHexDrawColor=$value;
+    }
+    /**
+     * Undocumented function
+     *
+     * @param [type] $header
+     * @param integer $ln
+     * @param integer $autoLines 0= none, L;B,T,R o combinaciones
+     * @return void
+     */
+    public function draw($header, $ln = 0,string $autoLines='')
     {
         $w = $this->GetWithWithoutMargin();
         $wc = $w / count($header);
@@ -147,6 +161,12 @@ class DPDF extends FPDF{
 
         $lastXMulticell = null; #solo util cuando se desean columnas,ln=2
         $lastYMulticell = null; #solo util cuando se desean filas,ln=0
+        $startY = $maxY=$this->GetY();
+        $startX =$maxX=$this->GetX();
+
+        $lastDrawColor=$this->lastHexDrawColor;
+
+        $arrayXYRigthPositions=[];
         foreach ($header as $value) {
             $fontModified = false;
             $currentFont = $lastFont;
@@ -172,7 +192,7 @@ class DPDF extends FPDF{
             $border = $value['border'] ?? $this->defaultBorder;
             $fill = $value['fill'] ?? false;
             $auto = $value['auto'] ?? false;
-
+            $drawColor=$value['drawColor']??$this->defaultHexDrawColor;
 
             if($this->autoUTF8&&isset($value['text'])){
                 $value['text']=utf8_decode($value['text']);
@@ -181,6 +201,10 @@ class DPDF extends FPDF{
             if (!empty($value['fill'])) {
                 $this->SetFillHexadecimalColor($fill);
                 $fill = true;
+            }
+            if (!empty($value['drawColor'])) {
+                $this->SetDrawHexColor($drawColor);
+                
             }
 
             if (!empty($value['weight'])) {
@@ -205,6 +229,7 @@ class DPDF extends FPDF{
                 $this->SetFontSize($value['size']);
                 $fontModified = true;
             }
+             
 
             #$lnItem=$specialObject==null?$ln:0;
             #$y=$this->GetY();
@@ -245,10 +270,17 @@ class DPDF extends FPDF{
                     );
                 }
             } else {
+                if(isset($value['offsety'])){
+                     
+                    $this->setY($this->getY()+$value['offsety'],false);
+                }
+                #auto
                 if ($ln == 2) #si desea que sean columnas
                 {
                     //quiero conservar x para que esten alineadas como columnas:
                     $lastXMulticell = $this->getX();
+                    $lastYMulticell=$this->GetY();
+
                 }else if($ln==0){
                     # I save X and Y for the next cell
                     $lastXMulticell = $this->getX()+$wc; 
@@ -268,11 +300,13 @@ class DPDF extends FPDF{
                     $fill
                 );
                 }else{
-                    $this->MultiCell($wc, $height/2, $value['text'],
+                    $this->MultiCell($wc, ($height/2)+.5, $value['text'],
                     $border,
                     $align,
                     $fill
-                );
+                    );
+                    $currentY=$this->getY();
+                    $value['lastY']= $currentY;
                 }
 
                
@@ -339,7 +373,37 @@ class DPDF extends FPDF{
                     $lastTextColor[2]
                 );
             }
-
+            if(!empty($value['drawColor'])){
+                
+                $this->SetDrawHexColor($lastDrawColor);
+            }
+            $maxY=($maxY<$this->GetY()?$this->GetY():$maxY);
+            $maxX=($maxX<$this->GetX()?$this->GetX():$maxX);
+            // I save the last positions of evey cell
+            $arrayXYRigthPositions[]=[$this->GetX(),$this->GetY()];
+        }
+        if($ln==0){
+            ##bottom
+            if(stripos($autoLines,'B')!==false){
+                $this->Line($startX,$maxY,$maxX,$maxY);
+            }
+            /*
+            if(stripos($autoLines,'L')!==false){
+                $this->Line($startX,$startY,$startX,$maxY);
+            }
+            if(stripos($autoLines,'R')!==false){
+                $this->Line($maxX,$startY,$maxX,$maxY);
+            }*/
+           
+            foreach ($arrayXYRigthPositions as $coord) {
+                 # due to multicell heigth change to much 
+                if(stripos($autoLines,'L')!==false){
+                    $this->Line($coord[0],$startY,$coord[0],$maxY);
+                }
+                if(stripos($autoLines,'R')!==false){
+                   // $this->Line($maxX,$startY,$maxX,$maxY);
+                }
+            }
         }
     }
     public function inColumn($column, $mode = 2)
@@ -408,13 +472,35 @@ class DPDF extends FPDF{
         $this->Cell($this->GetWithWithoutMargin(), $height, $text, $border, 1);
     }
 
-    public function AddImageFromBase64(string $base64, $x = null, $y = null, $w = 0, $h = 0, $type = 'jpeg', $link = '')
+    public function AddImageFromBase64(string $base64, $x = null, $y = null, $w = 0, $h = 0, $type = '', $link = '')
     {
         #https://stackoverflow.com/questions/2269363/put-png-over-a-jpg-in-php
         #$base = "data:image/jpeg;base64,";
+        /*
         $base = "data:image/$type;base64,";
         #need to add a condition to detect the mime type
         $this->Image($base . $base64, $x, $y, $w, $h, $type, $link);
+        */
+
+        $dataUrlStart='data:image';#this is how a dataUri image start
+        $base = "data:image/jpeg;base64,";
+        $base = "data:image/png;base64,";
+        if(\substr($base64,0,\strlen($dataUrlStart))!=$dataUrlStart){
+            $base64= $base . $base64;
+        }
+
+        #detect type base on dataUri
+        if($type==''){
+            $start=\strlen($dataUrlStart)+1;
+            $resPosition=strpos($base64,';',$start); 
+            if($resPosition===FALSE){
+                throw new Exception("Couldn't find the type of the image", 1);            
+            }
+            $type=  substr($base64,$start,$resPosition-$start);
+        }
+
+        #need to add a condition to detect the mime type
+        $this->Image($base64, $x, $y, $w, $h, $type, $link);
     }
 
     public function AddX(int $xRelative)
@@ -430,10 +516,29 @@ class DPDF extends FPDF{
         // Get current page width
         return $this->w;
     }
-    public function SetXOffSet($px){
+    public function CalculateXOffSet($px) {
         $pw = $this->GetWithWithoutMargin();       
         $newX=(($px/100)*$pw) +$this->lMargin;
+        return $newX;
+    }
+    public function SetXOffSet($px){
+        $newX=$this->CalculateXOffSet($px);
         $this->SetX(  $newX);        
+    }
+    /**
+     * Recibe un offset y lo traduce a px
+     * nno testetado
+     * @param integer $offset
+     * @return void
+     */
+    public function GetXOffSet($offset=0){
+        
+        $pw = $this->GetWithWithoutMargin();       
+       # $newX=(($px/100)*$pw) +$this->lMargin;
+       # $newX-$this->lMargin=(($px/100)*$pw) ;
+        $px=100*(($offset-$this->lMargin)/$pw);
+        return $px;
+                
     }
     /**
      * px wegith 
@@ -513,10 +618,10 @@ class DPDF extends FPDF{
                     if($child->IsParentHorizontal()){#se mueve solo en X
                         #calculo el width que pinto para ese chiild y hago el desplazamiento en X
                          $this->SetX($currentX+$this->CalculateRealSize($child->getWeight()));
-                        if($child->IsHorizontal()){ #solo si es horizontal y su padre es horizontal resstablece en el eje Y. 
+                        #if($child->IsHorizontal()){ #solo si es horizontal y su padre es horizontal resstablece en el eje Y. 
                             $this->SetXY($currentX+$this->CalculateRealSize($child->getWeight()),
                             $currentY);
-                        }
+                        #}
                     }else if ($child->IsParentVertical()){ #se mueve en Y                       
                         #si tiene hermano next(aun sin renderizar) y es diferente de vertical, agregale salto de linea
                         if($i+1<$numChildren){                       
@@ -561,8 +666,8 @@ class DPDF extends FPDF{
                     if($child->IsParentVertical()){
 
                     }else{
-                        $this->SetXY($autox,$autoy);
-
+                      #  $this->SetXY($autox,$autoy); #se comento esta linea porque lo deseado con un auto, es que se incie en el eje Y donde se quedo, ya que si se restarura Y y le sigue un elemento, colisionaran
+                        $this->SetX($autox);
                     }
                   }else if($child->IsParentVertical()){
                      # $this->Ln();
@@ -594,6 +699,12 @@ class DPDF extends FPDF{
 
     public function LineTo(int $x1,$y1){
         $this->Line($this->GetX(),$this->GetY(),$x1,$y1); 
+    }
+    public function getXY(){
+        return ['x'=>$this->GetX(),'y'=>$this->GetY()];
+    }
+    public function createCoord($beggining){
+        return ['start'=>$beggining,'end'=>$this->GetXY()];
     }
 }
 
@@ -673,7 +784,11 @@ class Cell {
 
     
     public function __construct($config){
-        $this->config=$config;
+        if(\is_string($config)){
+            $this->config=['text'=>$config];
+        }else{
+            $this->config=$config;
+        }
       
     }
     public function RecalculateWeightFromParent(){
