@@ -3,6 +3,7 @@ namespace DPDF;
 
 use FPDF;
 use tFPDF;
+use NumberFormatter;
 use DPDF\Concerns\RoundedRectTrait;
 /**
  * @author Daniel Hernandez <daniel.hernanandez.job@gmail.com>
@@ -214,6 +215,17 @@ class DPDF extends FPDF{
                # $maxHeightCell=max($maxHeightCell,(($rows+2)*($height/2)+2));#($height/2)+1
                 $maxHeightCell=max($maxHeightCell, $header[$index]['rowsHeight']);#($height/2)+1
             }
+            if(isset($header[$index]['format'])){
+                if(($header[$index]['text']===''||$header[$index]['text']===null) && $this->isFormatStrategyIgnoreFormatterWhenIsNull()){
+
+                }else {
+                    if($header[$index]['format']=='CU'){ #CU=CURRENCY,DATE,DECIMAL
+                   
+                        $header[$index]['text']=$this->formatCurrency($header[$index]['text']);
+                    }
+                   
+                }
+            }
         }
         foreach ($header as $value) {
             $include=$value['include']??true;
@@ -316,7 +328,21 @@ class DPDF extends FPDF{
                         'jpeg'
                     );
 
-                }else{
+                }
+                else if(isset($value['round'])&&$value['round']!=false){ #false ,0 
+                    $maxHeightCell =max($maxHeightCell,$height);
+                    $this->CellRound(
+                        $wc,$maxHeightCell,$value['text'],
+                        $border, #border,
+                        $ln, # 0=con esto hace que sea una linea seguida
+                        $align,
+                        $fill
+                        
+                    );
+                }
+                else
+                
+                {
                     $maxHeightCell =max($maxHeightCell,$height);
                     $this->Cell($wc, $maxHeightCell, $value['text'],
                         $border, #border
@@ -354,7 +380,15 @@ class DPDF extends FPDF{
                # $this->Line($this->GetX(),$this->GetY(),$this->GetX()+50,$this->GetY()+$finalProxHeight);
               
                 if($height==$finalProxHeight){
-                    $this->MultiCell($wc, $height, $value['text'],
+                    $maxHeightCell =max($maxHeightCell,$value['rowsHeight']);
+                    if($maxHeightCell!=$value['rowsHeight']){
+                        //if maxHeightCell  are $value['rowsHeight'], this means the current cell is not the higher one, so we need to adjust the cell height in order to reach the total height 
+                        $realHeight=$maxHeightCell/$value['rowsNumber'];
+                    }else{
+                        #if maxHeightCell and  rowsHeight is equal just pass the calculated height
+                        $realHeight=($height/2)+1;
+                    }
+                    $this->MultiCell($wc,$realHeight, $value['text'],
                     $border,
                     $align,
                     $fill
@@ -614,8 +648,16 @@ class DPDF extends FPDF{
         $newY=$this->CalculateYOffSet($percentage);
         $this->SetY(  $newY);
     }
-    public function SetXBeggining(){
-        $this->SetX($this->lMargin);
+    public function SetXBeggining(int $px=0){
+        $this->SetX($this->lMargin+$px);
+    }
+    /**
+     * Gets the maximun X position before rMargin
+     *
+     * @return void
+     */
+    public function GetXEnd(){
+        return $this->w-$this->rMargin;
     }
     /**
      * Recibe un numero porcentual (donde 100 es igual a la altura)
@@ -931,6 +973,111 @@ class DPDF extends FPDF{
             }
             return ['x'=>$maxX,'y'=>$maxY];
         }
+
+
+    /**
+     * Undocumented variable
+     *
+     * @var NumberFormatter
+     */
+    protected $currencyFormatter;
+    protected function setCurrencyFormatter(NumberFormatter $currencyFormatter){
+        $this->currencyFormatter=$currencyFormatter;
+    }
+    /**
+     * If you need a different format you can override this methods.
+     * There are at least two posibilities:
+     *  A) To pad always decimals to a certain specified number (for example 6 decimal positions) (min and max are the same so is fixed lenght)
+     *  B) To pad only when the value doesn't have decimals to a certain min number, having a min and max number.
+     * 
+     * This two configuration can be useful for different kind of reports.
+     * @return void
+     */
+    protected function setInitCurrencyFormatter(){
+       # $fmt = new NumberFormatter('en_US', NumberFormatter::CURRENCY);
+        $fmt = new NumberFormatter('en_US', NumberFormatter::DECIMAL );
+        $fmt->setAttribute(NumberFormatter::MIN_FRACTION_DIGITS ,2 );
+        # $fmt->setAttribute(NumberFormatter::MAX_SIGNIFICANT_DIGITS   ,25 );
+        #$fmt->setAttribute(NumberFormatter::DECIMAL_SEPARATOR_SYMBOL ,'.');
+        $fmt->setAttribute(NumberFormatter::MAX_FRACTION_DIGITS,100); #// by default some locales got max 2 fraction digits, so if there are more digi fractions these will be dropped
+        $this->currencyFormatter=$fmt;
+    }
+
+    public $formatStrategyForEmtpyValues=self::FORMAT_STRATEGY_EMPTY_IGNORE_FORMATTER;
+    /**
+     * This will set the null value(a filter will no be applied)
+     *  
+     */
+    public const FORMAT_STRATEGY_EMPTY_IGNORE_FORMATTER=1;
+    /**
+     * Pass the null value to the filter, so the filter is who decides(is responsible) what to do with the receive value.
+     */
+    public const FORMAT_STRATEGY_EMPTY_APPLY_FORMATTER=2;
+    /**
+     * Instead of appliying the formatter, a default value for the specified format will be use instead.
+     * For example. If we want to put a dash when the value is null. Use this constant.
+     * null=> "-"
+     * 
+     */
+    public const FORMAT_STRATEGY_DEFAULT_VALUE_FORMATTER=3;
+
+    public function isFormatStrategyIgnoreFormatterWhenIsNull(){
+        return self::FORMAT_STRATEGY_EMPTY_IGNORE_FORMATTER==$this->formatStrategyForEmtpyValues;
+    }
+    public function isFormatStrategyApplyFormatterWhenIsNull(){
+        return self::FORMAT_STRATEGY_EMPTY_APPLY_FORMATTER==$this->formatStrategyForEmtpyValues;
+    }
+    public function isFormatStrategDefaultValueForFormatTypeWhenIsNull(){
+        return FORMAT_STRATEGY_DEFAULT_VALUE_FORMATTER==$this->formatStrategyForEmtpyValues;
+    }
+
+    protected function formatCurrency($value){
+        if(!$this->hasCurrencyFormatter()){
+            $this->setInitCurrencyFormatter();
+        }
+        return $this->currencyFormatter->format($value);
+    }
+
+    /**
+     * Verifies wether the propertie  currencyFormatter has a valueundocumented variable
+     *
+     * @return  bool
+     */ 
+    public function hasCurrencyFormatter():bool
+    {
+        return !empty($this->currencyFormatter);
+    }
+    /**
+     * Sets XY positions 
+     *
+     * @param array $xy
+     * @return void
+     */
+    public function SetCoord(array $xy){
+        $this->SetXY($xy['x'],$xy['y']);
+    }
+    /**
+     * Draw a rule for testing purposes
+     *
+     * @return void
+     */
+    public function Rule(){
+        $prevousXY=$this->GetXY();
+       $inicialX= $this->GetTMargin();
+        $y= $this->CalculateYOffSet(10);
+        $sumY=10;
+       while($y<$this->h){
+        $y= $this->CalculateYOffSet($sumY);
+        $this->Line(0,$y,10,$y);
+        $this->SetYOffSet($sumY);
+        $this->Cell(4,10,$sumY);
+        $sumY+=10;
+       }
+
+       $this->SetCoord($prevousXY);
+      
+    }
+
 }
 
 class LabelAndText
