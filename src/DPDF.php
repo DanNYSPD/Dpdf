@@ -5,6 +5,7 @@ use FPDF;
 use tFPDF;
 use NumberFormatter;
 use DPDF\Concerns\RoundedRectTrait;
+use DPDF\Concerns\ImgTrait;
 /**
  * @author Daniel Hernandez <daniel.hernanandez.job@gmail.com>
  *
@@ -15,6 +16,7 @@ use DPDF\Concerns\RoundedRectTrait;
 class DPDF extends FPDF{
 
     use RoundedRectTrait;
+    use ImgTrait;
 
     public $autoUTF8=true;
 
@@ -1076,6 +1078,36 @@ class DPDF extends FPDF{
 
        $this->SetCoord($prevousXY);
       
+    }
+    /**
+     * We override this method from fpdf in order to allow interlaced png
+     *
+     * @param [type] $file
+     * @return void
+     */
+    protected function _parsepng($file)
+    {
+        // Extract info from a PNG file
+        $f = fopen($file,'rb');
+        if(!$f)
+            $this->Error('Can\'t open image file: '.$file);
+        if($this->isInterlaced($file)){
+            
+            $img=@\imagecreatefrompng($file); 
+            imageinterlace($img,0);
+            ob_start();
+            imagepng($img);
+            $data = ob_get_clean();
+            imagedestroy($img);
+            $f = fopen('php://temp','rb+');
+            if(!$f)
+                $this->Error('Unable to create memory stream');
+            fwrite($f,$data);
+            rewind($f);
+        }
+        $info = $this->_parsepngstream($f,$file);
+        fclose($f);
+        return $info;
     }
 
 }
