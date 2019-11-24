@@ -9,7 +9,8 @@
     ],
     "minimum-stability": "stable",
     "require": {
-        "php": ">=7.0.0"
+        "php": ">=7.0.0",
+        "setasign/fpdf": "1.8.1"
     },
     "autoload": {
         "psr-4": {
