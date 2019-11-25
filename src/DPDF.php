@@ -491,6 +491,8 @@ class DPDF extends FPDF{
             $arrayXYRigthPositions[]=[$this->GetX(),$this->GetY()];
             if($auto && $ln==0){
                 $this->SetXY($lastXMulticell,$lastYMulticell);
+            }else if($auto && 2==$ln){// 2 means below , so we keep x coordenate and move through y
+                $this->SetX($lastXMulticell);
             }
         }
         //ln to the right,1: to the beginning of the next line,2: below
