@@ -4,20 +4,20 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "00686ae7eea8bc7ddad756cef045cd9f",
+    "content-hash": "a2215fc9baecfd7ec3a81030992bebd6",
     "packages": [
         {
             "name": "setasign/fpdf",
-            "version": "1.8.1",
+            "version": "1.8.2",
             "source": {
                 "type": "git",
                 "url": "https://github.com/Setasign/FPDF.git",
-                "reference": "2c68c9e6c034ac3187d25968790139a73184cdb1"
+                "reference": "d77904018090c17dc9f3ab6e944679a7a47e710a"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/Setasign/FPDF/zipball/2c68c9e6c034ac3187d25968790139a73184cdb1",
-                "reference": "2c68c9e6c034ac3187d25968790139a73184cdb1",
+                "url": "https://api.github.com/repos/Setasign/FPDF/zipball/d77904018090c17dc9f3ab6e944679a7a47e710a",
+                "reference": "d77904018090c17dc9f3ab6e944679a7a47e710a",
                 "shasum": ""
             },
             "type": "library",
@@ -28,7 +28,7 @@
             },
             "notification-url": "https://packagist.org/downloads/",
             "license": [
-                "no usage restriction"
+                "MIT"
             ],
             "authors": [
                 {
@@ -43,7 +43,7 @@
                 "fpdf",
                 "pdf"
             ],
-            "time": "2016-01-01T17:47:15+00:00"
+            "time": "2019-12-08T10:32:10+00:00"
         }
     ],
     "packages-dev": [
@@ -716,6 +716,7 @@
             "keywords": [
                 "tokenizer"
             ],
+            "abandoned": true,
             "time": "2019-09-17T06:23:10+00:00"
         },
         {
@@ -1323,6 +1324,7 @@
             ],
             "description": "Provides a list of PHP built-in functions that operate on resources",
             "homepage": "https://www.github.com/sebastianbergmann/resource-operations",
+            "abandoned": true,
             "time": "2018-10-04T04:07:39+00:00"
         },
         {
@@ -1471,12 +1473,12 @@
             "version": "1.5.0",
             "source": {
                 "type": "git",
-                "url": "https://github.com/webmozart/assert.git",
+                "url": "https://github.com/webmozarts/assert.git",
                 "reference": "88e6d84706d09a236046d686bbea96f07b3a34f4"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/webmozart/assert/zipball/88e6d84706d09a236046d686bbea96f07b3a34f4",
+                "url": "https://api.github.com/repos/webmozarts/assert/zipball/88e6d84706d09a236046d686bbea96f07b3a34f4",
                 "reference": "88e6d84706d09a236046d686bbea96f07b3a34f4",
                 "shasum": ""
             },
