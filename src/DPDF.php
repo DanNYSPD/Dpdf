@@ -1111,6 +1111,12 @@ class DPDF extends FPDF{
         fclose($f);
         return $info;
     }
+    public function GetPageBreakTrigger(){
+        return $this->PageBreakTrigger;
+    }
+    public function isPageBreakTriggerReached($nY=0):bool{
+        return $this->GetY()+$nY>$this->GetPageBreakTrigger();
+    }
 
 }
 
