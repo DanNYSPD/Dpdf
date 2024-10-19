@@ -1039,7 +1039,7 @@ class DPDF extends FPDF{
         if(!$this->hasCurrencyFormatter()){
             $this->setInitCurrencyFormatter();
         }
-        return $this->currencyFormatter->format($value);
+        return $this->currencyFormatter->format((float)$value);
     }
 
     /**
