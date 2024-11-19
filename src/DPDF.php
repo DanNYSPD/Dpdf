@@ -1118,6 +1118,83 @@ class DPDF extends FPDF{
         return $this->GetY()+$nY>$this->GetPageBreakTrigger();
     }
 
+    private function SetStyle($tag, $enable)
+    {
+        $this->$tag += ($enable ? 1 : -1);
+        $style = '';
+        foreach (['B', 'I', 'U'] as $s) {
+            if ($this->$s > 0) {
+                $style .= $s;
+            }
+        }
+        $this->SetFont('', $style);
+    }
+
+    private function WriteHTML($html)
+    {
+        $html = str_replace("\n", ' ', $html);
+        $a = preg_split('/<(.*)>/U', $html, -1, PREG_SPLIT_DELIM_CAPTURE);
+        foreach ($a as $i => $e) {
+            if ($i % 2 == 0) {
+                $this->Write(5, $e);
+            } else {
+                if ($e[0] == '/') {
+                    $this->SetStyle(strtoupper(substr($e, 1)), false);
+                } else {
+                    $this->SetStyle(strtoupper($e), true);
+                }
+            }
+        }
+    }
+
+    private function WordWrap($text, $maxWidth)
+    {
+        $wrappedText = [];
+        $line = '';
+        $words = explode(' ', $text);
+
+        foreach ($words as $word) {
+            $testLine = $line . ($line ? ' ' : '') . strip_tags($word);
+            $testWidth = $this->GetStringWidth($testLine);
+
+            if ($testWidth > $maxWidth) {
+                if ($line) {
+                    $wrappedText[] = $line;
+                }
+                $line = $word;
+            } else {
+                $line .= ($line ? ' ' : '') . $word;
+            }
+        }
+        if ($line) {
+            $wrappedText[] = $line;
+        }
+
+        return $wrappedText;
+    }
+
+    public function WriteHTMLWrapped($text, $maxWidth, $aplicaX = false)
+    {
+        // Convertir el texto de UTF-8 a ISO-8859-1 para FPDF y manejar caracteres especiales
+        $text = iconv('UTF-8', 'ISO-8859-1//TRANSLIT', $text);
+
+        // Aplicar WordWrap para dividir el texto en líneas que respeten el maxWidth
+        $lines = $this->WordWrap($text, $maxWidth);
+        if($aplicaX){
+            $saveX = $this->GetX();
+        }
+        
+        // Usar WriteHTML para procesar cada línea con etiquetas HTML
+        foreach ($lines as $index => $line) {
+            if($aplicaX){
+                $this->SetX($saveX);
+            }
+            
+            $this->WriteHTML($line);
+            $this->Ln(); // Saltar línea entre líneas envueltas
+        }
+    }
+
 }
 
 class LabelAndText
