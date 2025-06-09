@@ -1118,6 +1118,10 @@ class DPDF extends FPDF{
         return $this->GetY()+$nY>$this->GetPageBreakTrigger();
     }
 
+    protected $B = 0;
+    protected $I = 0;
+    protected $U = 0;
+    
     private function SetStyle($tag, $enable)
     {
         $this->$tag += ($enable ? 1 : -1);
